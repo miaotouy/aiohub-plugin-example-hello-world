@@ -1,0 +1,33 @@
+{
+  "id": "example-hello-world",
+  "name": "Hello World Vue 插件",
+  "version": "1.0.0",
+  "description": "使用 Vue 单文件组件开发的示例插件，展示如何享受 Vite HMR",
+  "author": "咕咕",
+  "host": {
+    "appVersion": ">=0.1.0"
+  },
+  "type": "javascript",
+  "main": "index.ts",
+  "methods": [
+    {
+      "name": "greet",
+      "displayName": "打招呼",
+      "description": "返回问候消息",
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "description": "名字",
+          "required": true
+        }
+      ],
+      "returnType": "string"
+    }
+  ],
+  "ui": {
+    "displayName": "Hello World Vue",
+    "component": "HelloWorld.vue",
+    "icon": "🎉"
+  }
+}
