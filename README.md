@@ -1,85 +1,90 @@
 # Hello World Vue 插件
 
-这是一个使用 Vue 单文件组件 (`.vue`) 开发的示例插件。
+这是一个使用 Vue 单文件组件开发的示例插件，展示如何享受 Vite HMR。
 
-## 特性
+## 功能特性
 
-- ✅ **使用 .vue 文件开发** - 无需手动编译，直接写 Vue SFC
-- ✅ **享受 Vite HMR** - 修改代码后自动热重载
-- ✅ **Element Plus 支持** - 直接使用 UI 组件库
-- ✅ **TypeScript 支持** - 完整的类型检查
-- ✅ **样式隔离** - 使用 `<style scoped>`
+- ✅ 使用 `.vue` 单文件组件
+- ✅ 支持 Vite HMR 热重载
+- ✅ 可以直接使用 `<template>` 语法
+- ✅ 支持 Element Plus 组件库
+- ✅ 完整的开发到生产构建流程
 
-## 文件结构
+## 开发模式
 
-```
-example-hello-world/
-├── HelloWorld.vue    # Vue 单文件组件（UI）
-├── index.ts          # 插件逻辑（后端方法）
-├── manifest.json     # 插件清单
-└── README.md         # 说明文档
-```
+在开发模式下，插件无需构建即可使用：
 
-## 开发体验对比
-
-### 旧方式（手动编译）
-
-```javascript
-// 需要使用 h() 函数手写组件
-import { h, ref } from 'vue';
-
-export default {
-  setup() {
-    const name = ref('');
-    return () => h('div', [
-      h('input', {
-        value: name.value,
-        onInput: (e) => { name.value = e.target.value; }
-      })
-    ]);
-  }
-};
+```bash
+# 将插件放在主应用的 plugins/ 目录下
+# 启动主应用
+npm run dev
 ```
 
-### 新方式（Vue SFC）
+插件会自动加载，修改代码后会立即生效（HMR）。
 
-```vue
-<template>
-  <div>
-    <el-input v-model="name" />
-  </div>
-</template>
+## 构建插件
 
-<script setup>
-import { ref } from 'vue';
-const name = ref('');
-</script>
+### 前置要求
 
-<style scoped>
-/* 样式隔离 */
-</style>
+```bash
+# 安装依赖
+bun install
 ```
 
-## 使用方法
+### 构建步骤
 
-1. 将插件文件夹放在 `/plugins/` 目录
-2. 启动应用（`npm run dev`）
-3. 插件会自动加载并支持热重载
-4. 在侧边栏找到 "Hello World Vue" 工具
+```bash
+# 仅构建（不打包）
+bun run build
 
-## 技术说明
+# 构建并打包成 ZIP
+bun run package
+```
 
-- **开发模式**：通过 Vite 的 `import.meta.glob` 扫描 `.vue` 文件，享受 HMR
-- **生产模式**：需要提前编译为 `.js` 文件（未来可能支持自动编译）
+构建过程会：
+1. 使用 Bun 编译 `index.ts` → `index.js`
+2. 使用 Vite 编译 `HelloWorld.vue` → `HelloWorld.js`
+3. 自动修改 `manifest.json` 中的组件路径（`.vue` → `.js`）
+4. 将所有文件打包到 `dist/` 目录
+5. （可选）创建 ZIP 压缩包用于分发
 
-## 最佳实践
+### 输出结构
 
-1. 使用 `<script setup>` 简化代码
-2. 使用 Element Plus 组件保持风格统一
-3. 使用 CSS 变量适配主题
-4. 导入主应用的 composables 复用功能
+```
+dist/
+├── manifest.json       # 自动修改后的清单（component: "HelloWorld.js"）
+├── index.js           # 编译后的插件逻辑
+├── HelloWorld.js      # 编译后的 UI 组件
+└── README.md          # 说明文档
+```
 
-## 相关文档
+## 文件说明
 
-- [插件 UI 开发指南](../../docs/plugin-ui-development-guide.md)
-- [插件开发指南](../../docs/plugin-development-guide.md)
+- `manifest.json` - 插件清单（开发模式使用 `.vue`）
+- `index.ts` - 插件核心逻辑
+- `HelloWorld.vue` - UI 组件（开发模式）
+- `vite.config.js` - Vue 组件构建配置
+- `build.js` - 完整构建脚本
+- `tsconfig.json` - TypeScript 配置
+
+## 插件方法
+
+### `greet(params)`
+返回问候消息。
+
+**参数**：
+- `name` (string): 名字
+
+**返回**: `Promise<string>`
+
+## 技术栈
+
+- TypeScript
+- Vue 3 (Composition API)
+- Element Plus
+- Bun (TypeScript 编译)
+- Vite (Vue 组件编译)
+
+## 许可证
+
+MIT

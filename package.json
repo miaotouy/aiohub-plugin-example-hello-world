@@ -1,0 +1,29 @@
+{
+  "name": "example-hello-world",
+  "version": "1.0.0",
+  "description": "Hello World Vue 插件示例",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "node build.js",
+    "build:ts": "bun build index.ts --outfile=index.js --target=browser --format=iife",
+    "build:vue": "vite build",
+    "package": "node build.js --package",
+    "dev": "bun build index.ts --outfile=index.js --target=browser --format=iife --watch",
+    "clean": "rimraf dist dist-ui index.js *.zip"
+  },
+  "keywords": [
+    "aio-hub",
+    "plugin",
+    "javascript",
+    "hello-world"
+  ],
+  "author": "咕咕",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "archiver": "^7.0.1",
+    "vite": "^5.0.0",
+    "@vitejs/plugin-vue": "^5.0.0"
+  }
+}
