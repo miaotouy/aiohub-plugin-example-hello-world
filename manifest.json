@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "description": "使用 Vue 单文件组件开发的示例插件，展示如何享受 Vite HMR",
   "author": "咕咕",
+  "tags": ["示例", "教程", "Vue"],
   "host": {
     "appVersion": ">=0.1.0"
   },
