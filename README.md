@@ -1,5 +1,8 @@
 # Hello World Vue 插件
 
+> [!NOTE]
+> **本插件是 [AIO Hub](https://github.com/miaotouy/aio-hub) 的插件示例。**
+
 这是一个使用 Vue 单文件组件开发的示例插件，展示如何享受 Vite HMR。
 
 ## 功能特性
