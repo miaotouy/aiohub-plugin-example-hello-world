@@ -23,9 +23,9 @@ function buildTypeScript() {
   console.log('📦 编译 TypeScript...');
   
   try {
-    execSync('bun build index.ts --outfile=index.js --target=browser --format=iife', { 
+    execSync('bun build index.ts --outfile=dist/index.js --target=browser --format=iife', {
       stdio: 'inherit',
-      cwd: __dirname 
+      cwd: __dirname
     });
     
     console.log('✅ TypeScript 编译完成');
@@ -61,45 +61,42 @@ function packagePlugin() {
 
   const distDir = path.join(__dirname, 'dist');
 
-  // 清理并创建输出目录
-  if (fs.existsSync(distDir)) {
-    fs.rmSync(distDir, { recursive: true });
-  }
-  fs.mkdirSync(distDir, { recursive: true });
-
-  // 复制编译后的 index.js
-  const indexJsPath = path.join(__dirname, 'index.js');
+  // 检查编译后的 index.js 是否存在，它应该已由 buildTypeScript() 创建
+  const indexJsPath = path.join(distDir, 'index.js');
   if (!fs.existsSync(indexJsPath)) {
     console.error('❌ 找不到编译后的 index.js 文件');
     process.exit(1);
   }
-  fs.copyFileSync(indexJsPath, path.join(distDir, 'index.js'));
-  console.log('   ✓ 复制 index.js');
+  console.log('   ✓ 发现 index.js');
 
-  // 复制编译后的 Vue 组件
-  const componentJsPath = path.join(__dirname, 'dist-ui', 'HelloWorld.js');
-  if (!fs.existsSync(componentJsPath)) {
-    console.error('❌ 找不到编译后的 HelloWorld.js 文件');
-    process.exit(1);
-  }
-  fs.copyFileSync(componentJsPath, path.join(distDir, 'HelloWorld.js'));
-  console.log('   ✓ 复制 HelloWorld.js');
-
-  // 复制并修改 manifest.json（将 .vue 改为 .js）
+  // 处理 manifest 并验证 Vue 组件
   const manifestPath = path.join(__dirname, 'manifest.json');
   const manifestContent = fs.readFileSync(manifestPath, 'utf-8');
   const manifest = JSON.parse(manifestContent);
-  
-  // 如果 UI 组件是 .vue 文件，改为 .js
+
+  // 验证 Vue 组件是否已编译到 dist 目录
   if (manifest.ui && manifest.ui.component) {
-    manifest.ui.component = manifest.ui.component.replace(/\.vue$/, '.js');
+    const componentFileName = manifest.ui.component; // e.g., "HelloWorld.vue"
+    const componentBaseName = path.basename(componentFileName, '.vue'); // e.g., "HelloWorld"
+    const componentJsName = `${componentBaseName}.js`; // e.g., "HelloWorld.js"
+    
+    const componentJsPath = path.join(distDir, componentJsName);
+    if (!fs.existsSync(componentJsPath)) {
+      console.error(`❌ 找不到编译后的 ${componentJsName} 文件`);
+      process.exit(1);
+    }
+    console.log(`   ✓ 发现 ${componentJsName}`);
+
+    // 修改 manifest 内容中的组件路径，准备写入 dist
+    manifest.ui.component = componentJsName;
   }
   
+  // 写入处理后的 manifest.json
   fs.writeFileSync(
     path.join(distDir, 'manifest.json'),
     JSON.stringify(manifest, null, 2)
   );
-  console.log('   ✓ 复制并处理 manifest.json（.vue → .js）');
+  console.log('   ✓ 复制并处理 manifest.json');
 
   // 复制 README（如果存在）
   const readmePath = path.join(__dirname, 'README.md');
@@ -170,6 +167,23 @@ async function createZipArchive(distDir) {
 
 // 主流程
 async function main() {
+  // 清理旧的构建产物
+  console.log('🧹 清理旧的构建产物...');
+  const distDir = path.join(__dirname, 'dist');
+  if (fs.existsSync(distDir)) {
+    fs.rmSync(distDir, { recursive: true });
+  }
+  const distUiDir = path.join(__dirname, 'dist-ui');
+  if (fs.existsSync(distUiDir)) {
+    fs.rmSync(distUiDir, { recursive: true });
+  }
+  const rootIndexJs = path.join(__dirname, 'index.js');
+  if (fs.existsSync(rootIndexJs)) {
+    fs.unlinkSync(rootIndexJs);
+  }
+  console.log('✅ 清理完成');
+  console.log('');
+
   // 编译 TypeScript
   const tsSuccess = buildTypeScript();
   if (!tsSuccess) {
