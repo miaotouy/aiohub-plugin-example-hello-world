@@ -6,26 +6,11 @@
   "author": "咕咕",
   "tags": ["示例", "教程", "Vue"],
   "host": {
-    "appVersion": ">=0.1.0"
+    "appVersion": ">=0.4.6",
+    "apiVersion": 2
   },
   "type": "javascript",
   "main": "index.ts",
-  "methods": [
-    {
-      "name": "greet",
-      "displayName": "打招呼",
-      "description": "返回问候消息",
-      "parameters": [
-        {
-          "name": "name",
-          "type": "string",
-          "description": "名字",
-          "required": true
-        }
-      ],
-      "returnType": "string"
-    }
-  ],
   "ui": {
     "displayName": "Hello World Vue",
     "component": "HelloWorld.vue",
