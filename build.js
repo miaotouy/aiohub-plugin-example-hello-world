@@ -18,50 +18,34 @@ const args = process.argv.slice(2);
 console.log('🔨 构建 JavaScript 插件: example-hello-world');
 console.log('');
 
-// 编译 TypeScript (使用 Bun)
-function buildTypeScript() {
-  console.log('📦 编译 TypeScript...');
+// 编译插件组件和逻辑 (使用 Vite)
+function buildPlugin() {
+  console.log('📦 编译插件 (Vite)...');
   
   try {
-    execSync('bun build index.ts --outfile=dist/index.js --target=browser --format=iife', {
+    // 使用 Vite 统一编译 Vue 组件和 index.ts
+    // 在 Windows 环境下，使用 bun x vite 确保能找到命令
+    execSync('bun x vite build', {
       stdio: 'inherit',
       cwd: __dirname
     });
     
-    console.log('✅ TypeScript 编译完成');
+    console.log('✅ 编译完成');
     return true;
   } catch (error) {
-    console.error('❌ TypeScript 编译失败:', error.message);
-    return false;
-  }
-}
-
-// 编译 Vue 组件
-function buildVueComponent() {
-  console.log('📦 编译 Vue 组件...');
-  
-  try {
-    execSync('vite build', { 
-      stdio: 'inherit',
-      cwd: __dirname 
-    });
-    
-    console.log('✅ Vue 组件编译完成');
-    return true;
-  } catch (error) {
-    console.error('❌ Vue 组件编译失败:', error.message);
+    console.error('❌ 编译失败:', error.message);
     return false;
   }
 }
 
 // 打包插件
-function packagePlugin() {
+async function packagePlugin() {
   console.log('');
   console.log('📦 打包插件...');
 
   const distDir = path.join(__dirname, 'dist');
 
-  // 检查编译后的 index.js 是否存在，它应该已由 buildTypeScript() 创建
+  // 检查编译后的 index.js 是否存在
   const indexJsPath = path.join(distDir, 'index.js');
   if (!fs.existsSync(indexJsPath)) {
     console.error('❌ 找不到编译后的 index.js 文件');
@@ -73,6 +57,12 @@ function packagePlugin() {
   const manifestPath = path.join(__dirname, 'manifest.json');
   const manifestContent = fs.readFileSync(manifestPath, 'utf-8');
   const manifest = JSON.parse(manifestContent);
+
+  // 修改 main 路径指向编译后的 js 文件
+  if (manifest.main && manifest.main.endsWith('.ts')) {
+    manifest.main = manifest.main.replace(/\.ts$/, '.js');
+    console.log(`   ✓ 修改 manifest.main: ${manifest.main}`);
+  }
 
   // 验证 Vue 组件是否已编译到 dist 目录
   if (manifest.ui && manifest.ui.component) {
@@ -87,8 +77,35 @@ function packagePlugin() {
     }
     console.log(`   ✓ 发现 ${componentJsName}`);
 
-    // 修改 manifest 内容中的组件路径，准备写入 dist
+    // 修改 manifest 内容中的组件路径
     manifest.ui.component = componentJsName;
+  }
+
+  // 尝试从 index.ts 静态提取元数据 (methods)
+  try {
+    console.log('   🔍 尝试静态提取元数据...');
+    const indexTsPath = path.join(__dirname, 'index.ts');
+    const indexTsContent = fs.readFileSync(indexTsPath, 'utf-8');
+    
+    // 使用正则匹配 getMetadata 函数中的 methods 数组
+    const methodsMatch = indexTsContent.match(/methods:\s*(\[[\s\S]*?\])\s*,?\s*};/);
+    
+    if (methodsMatch && methodsMatch[1]) {
+      let methodsStr = methodsMatch[1];
+      try {
+        const methods = eval(methodsStr);
+        if (Array.isArray(methods)) {
+          manifest.methods = methods;
+          console.log(`   ✓ 已静态注入 ${methods.length} 个暴露方法到 manifest`);
+        }
+      } catch (evalError) {
+        console.warn('   ⚠️ 解析提取的方法列表失败:', evalError.message);
+      }
+    } else {
+      console.warn('   ⚠️ 未在 index.ts 中找到 methods 声明');
+    }
+  } catch (error) {
+    console.warn('   ⚠️ 静态提取元数据失败:', error.message);
   }
   
   // 写入处理后的 manifest.json
@@ -173,10 +190,6 @@ async function main() {
   if (fs.existsSync(distDir)) {
     fs.rmSync(distDir, { recursive: true });
   }
-  const distUiDir = path.join(__dirname, 'dist-ui');
-  if (fs.existsSync(distUiDir)) {
-    fs.rmSync(distUiDir, { recursive: true });
-  }
   const rootIndexJs = path.join(__dirname, 'index.js');
   if (fs.existsSync(rootIndexJs)) {
     fs.unlinkSync(rootIndexJs);
@@ -184,21 +197,15 @@ async function main() {
   console.log('✅ 清理完成');
   console.log('');
 
-  // 编译 TypeScript
-  const tsSuccess = buildTypeScript();
-  if (!tsSuccess) {
-    process.exit(1);
-  }
-
-  // 编译 Vue 组件
-  const vueSuccess = buildVueComponent();
-  if (!vueSuccess) {
+  // 编译插件
+  const buildSuccess = buildPlugin();
+  if (!buildSuccess) {
     process.exit(1);
   }
 
   // 打包插件
   if (args.includes('--package')) {
-    const distDir = packagePlugin();
+    const distDir = await packagePlugin();
     await createZipArchive(distDir);
   }
 }

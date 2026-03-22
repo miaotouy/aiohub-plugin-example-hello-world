@@ -76,11 +76,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { ElCard, ElInput, ElButton, ElAlert } from 'element-plus';
 import { CopyDocument } from '@element-plus/icons-vue';
-import { execute } from '@/services/executor';
+import { execute, customMessage } from 'aiohub-sdk';
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
-import { customMessage } from '@/utils/customMessage';
 
 const name = ref('');
 const greeting = ref('');
