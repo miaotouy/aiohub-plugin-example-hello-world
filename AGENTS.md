@@ -30,6 +30,7 @@
 - 打包：`bun run package`
 - 开发 watch：`bun run dev`
 - 清理：`bun run clean`
+- Vue UI 构建时，`vite.config.js` 的 `rollupOptions.output` 需配置 `codeSplitting: false`（Vite 8 / Rolldown 推荐写法），禁用代码分割，消灭分块 JS，彻底解决相对路径加载问题。
 
 本仓库是独立 Git 仓库，提交应在本目录内完成。
 
@@ -38,3 +39,4 @@
 - TS 或方法元数据改动至少运行 `bun run build:ts` 或 `bun run build`。
 - UI 改动至少运行 `bun run build:vue` 或 `bun run build`。
 - 生命周期和 Agent 调用能力需要在 AIO Hub 插件宿主中验证；普通浏览器只能看静态 UI 外观。
+
